@@ -9,6 +9,8 @@ on:
 
 jobs:
   desktop:
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       matrix:
@@ -51,14 +53,37 @@ jobs:
         with:
           workspaces: src-tauri -> target
 
-      - uses: tauri-apps/tauri-action@v1
+      # Tag push -> build and publish a draft GitHub Release with the installers.
+      - name: Build and release
+        if: github.ref_type == 'tag'
+        uses: tauri-apps/tauri-action@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           projectPath: src-tauri
-          args: ${{ matrix.args }}
+          tagName: ${{ github.ref_name }}
+          releaseName: INKWAVE ${{ github.ref_name }}
+          releaseBody: |
+            INKWAVE — 地盘暴动 桌面版。
+
+            - **Windows**：下载 `.exe`（NSIS 安装包）
+            - **Linux**：下载 `.deb`（Debian/Ubuntu）或 `.AppImage`（免安装）
+
+            系统要求：Windows 10+ / Ubuntu 22.04+。
+          releaseDraft: true
+          prerelease: false
+
+      # Anything else -> build only, keep the bundles as workflow artifacts.
+      - name: Build only
+        if: github.ref_type != 'tag'
+        uses: tauri-apps/tauri-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          projectPath: src-tauri
 
       - uses: actions/upload-artifact@v4
+        if: github.ref_type != 'tag'
         with:
           name: inkwave-${{ matrix.label }}
           path: |
