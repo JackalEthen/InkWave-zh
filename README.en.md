@@ -35,9 +35,9 @@
 
 <p align="center">
   <img alt="Platform: Web" src="https://img.shields.io/badge/Web-supported-success?logo=googlechrome&logoColor=white">
-  <img alt="Platform: Windows" src="https://img.shields.io/badge/Windows-planned-blue?logo=windows&logoColor=white">
+  <img alt="Platform: Windows" src="https://img.shields.io/badge/Windows-supported-success?logo=windows&logoColor=white">
   <img alt="Platform: Android" src="https://img.shields.io/badge/Android-planned-blue?logo=android&logoColor=white">
-  <img alt="Platform: Linux" src="https://img.shields.io/badge/Linux-planned-blue?logo=linux&logoColor=white">
+  <img alt="Platform: Linux" src="https://img.shields.io/badge/Linux-supported-success?logo=linux&logoColor=white">
 </p>
 
 <p align="center">
@@ -179,9 +179,9 @@ Rendering is three.js r186 (vendored, plain ES modules with an import map) with 
 | Platform | Status | Notes |
 |---|---|---|
 | **Web** | ✅ **Supported** | Chrome and Edge are the target; Firefox works.  |
-| **Windows** | 🔜 Planned | Packaged with [Tauri 2](https://v2.tauri.app/), installer roughly 12–25 MB |
+| **Windows** | ✅ **Supported** | Packaged with [Tauri 2](https://v2.tauri.app/); NSIS installer is about 9 MB and needs Windows 10+ |
 | **Android** | 🔜 Planned | Same Tauri 2 codebase; **touch controls must be added first** (currently keyboard/mouse + gamepad only) |
-| **Linux** | 🔜 Planned | Tauri 2, requires WebKitGTK 2.40+ (Ubuntu 22.04 or newer) |
+| **Linux** | ✅ **Supported** | Tauri 2, ships a `.deb` and an `.AppImage`, requires WebKitGTK 2.40+ (Ubuntu 22.04 or newer) |
 | **iOS** | ❌ Not supported | Not planned |
 | **macOS** | ❌ Not supported | Not planned |
 

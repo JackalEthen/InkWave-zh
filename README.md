@@ -35,9 +35,9 @@
 
 <p align="center">
   <img alt="Platform: Web" src="https://img.shields.io/badge/Web-已支持-success?logo=googlechrome&logoColor=white">
-  <img alt="Platform: Windows" src="https://img.shields.io/badge/Windows-计划中-blue?logo=windows&logoColor=white">
+  <img alt="Platform: Windows" src="https://img.shields.io/badge/Windows-已支持-success?logo=windows&logoColor=white">
   <img alt="Platform: Android" src="https://img.shields.io/badge/Android-计划中-blue?logo=android&logoColor=white">
-  <img alt="Platform: Linux" src="https://img.shields.io/badge/Linux-计划中-blue?logo=linux&logoColor=white">
+  <img alt="Platform: Linux" src="https://img.shields.io/badge/Linux-已支持-success?logo=linux&logoColor=white">
 </p>
 
 <p align="center">
@@ -178,9 +178,9 @@ npm run build    # 打包 dist/（只含游戏和它真正 import 的 three.js �
 | 平台 | 状态 | 说明 |
 |---|---|---|
 | **Web** | ✅ **已支持** | Chrome / Edge 为主目标，Firefox 可用 |
-| **Windows** | 🔜 计划中 | 用 [Tauri 2](https://v2.tauri.app/) 打包，安装包约 12–25 MB |
+| **Windows** | ✅ **已支持** | 用 [Tauri 2](https://v2.tauri.app/) 打包，NSIS 安装包约 9 MB，需 Windows 10+ |
 | **Android** | 🔜 计划中 | 同一套 Tauri 2 代码库出包；**需要先补触摸操作**（当前仅键鼠 + 手柄） |
-| **Linux** | 🔜 计划中 | Tauri 2 打包，依赖 WebKitGTK 2.40+（Ubuntu 22.04 及以上） |
+| **Linux** | ✅ **已支持** | Tauri 2 打包，提供 `.deb` 与 `.AppImage`，依赖 WebKitGTK 2.40+（Ubuntu 22.04 及以上） |
 | **iOS** | ❌ 不支持 | 不在计划内 |
 | **macOS** | ❌ 不支持 | 不在计划内 |
 
