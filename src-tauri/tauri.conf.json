@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "INKWAVE",
+  "version": "1.0.0",
+  "identifier": "com.jackalethen.inkwave",
+  "build": {
+    "frontendDist": "../dist",
+    "beforeBuildCommand": "node tools/sync-dist.mjs"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "INKWAVE — 地盘暴动",
+        "width": 1280,
+        "height": 720,
+        "minWidth": 960,
+        "minHeight": 540,
+        "resizable": true,
+        "fullscreen": false,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "deb", "appimage"],
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.ico"
+    ],
+    "category": "Game",
+    "shortDescription": "4v4 地盘战墨水射击游戏",
+    "longDescription": "INKWAVE — 基于 three.js 的 4v4 地盘战墨水射击游戏，含中英双语。"
+  }
+}
