@@ -596,6 +596,8 @@ export class PaintSystem {
   flush(dt = 1 / 60) {
     this.clock += dt;
     this.frame++;
+    // idle frame: nothing spreading, nothing queued, no drying owed -> keep the clock fed, skip the rest
+    if (!this.growing.length && !this.quads && !this.dryMesh.visible) { this._dryAcc += dt; return; }
     for (let i = 0; i < this.growing.length; i++) {
       const g = this.growing[i];
       g.age += dt;

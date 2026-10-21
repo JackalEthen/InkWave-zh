@@ -9,6 +9,7 @@
 // Per frame it only projects a handful of points and writes transforms / CSS vars when they change.
 import { h, clamp } from './ui-util.js';
 import { keycap, weaponIcon, richText } from './ui-icons.js';
+import { t } from '../i18n/i18n.js';
 import { G } from '../core/ctx.js';
 import * as THREE from 'three';
 
@@ -33,7 +34,7 @@ export class DioramaOverlay {
       this.arc,
       h('div', { class: 'iw-dio__pins' }, this.pins.map((p) => p.el)),
       this.cursor,
-      h('div', { class: 'iw-dio__head' }, h('small', { class: 'iw-dio__kicker' }, 'STAGE MAP'), this.title, this.when),
+      h('div', { class: 'iw-dio__head' }, h('small', { class: 'iw-dio__kicker' }, t('stage.map')), this.title, this.when),
       this.foot);
     root.prepend(this.el);
     this.k = 0; this.on = false;
@@ -183,11 +184,11 @@ export class DioramaOverlay {
 
   _head() {
     const m = G.game?.mapDef;
-    this.title.textContent = (m?.name || 'Stage').toUpperCase();
-    this.when.textContent = G.game?.time === 'dusk' ? 'DUSK' : 'DAY';
+    this.title.textContent = (m?.name || t('stage.unknown')).toUpperCase();
+    this.when.textContent = G.game?.time === 'dusk' ? t('stage.dusk') : t('stage.day');
     const pad = G.input?.lastDevice === 'pad';
     this.foot.innerHTML = pad
-      ? richText('Right stick to point · A or D-pad to Super Jump · release VIEW to close')
-      : `${keycap('1')}${keycap('2')}${keycap('3')} <span>Super Jump to a teammate</span> ${keycap('4')} <span>Base</span> <em>·</em> <span>Point + click a pin</span> <em>·</em> <span>release</span> ${keycap('TAB')}`;
+      ? richText(t('map.foot.pad'))
+      : `${keycap('1')}${keycap('2')}${keycap('3')} <span>${t('map.jump')}</span> ${keycap('4')} <span>${t('hud.base')}</span> <em>·</em> <span>${t('map.point')}</span> <em>·</em> <span>${t('map.release')}</span> ${keycap('TAB')}`;
   }
 }

@@ -83,6 +83,29 @@ export class Renderer {
     this.settings = settings;
     this.q = QUALITY[settings.quality] || QUALITY.high;
     this._w = 0; this._h = 0;
+    // A lost context (driver reset, GPU out of memory) otherwise just freezes on the last frame
+    // with no explanation. Prevent default so the browser may restore it, and say so on screen.
+    r.domElement.addEventListener('webglcontextlost', (e) => {
+      e.preventDefault();
+      console.error('[inkwave] WebGL context lost — the GPU ran out of memory or the driver reset');
+      this._notice('画面已停止渲染：显卡上下文丢失。请刷新页面；若反复出现，请在设置里降低画质。');
+    });
+    r.domElement.addEventListener('webglcontextrestored', () => {
+      console.warn('[inkwave] WebGL context restored');
+    });
+  }
+
+  // Minimal on-screen notice for failures that would otherwise look like a freeze.
+  _notice(text) {
+    if (this._noticeEl) return;
+    const el = document.createElement('div');
+    el.id = 'gpu-notice';
+    el.textContent = text;
+    el.style.cssText = 'position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:70;'
+      + 'color:#fff;font:600 16px/1.4 system-ui,sans-serif;background:#c0263d;padding:16px 20px;'
+      + 'border-radius:12px;max-width:520px;text-align:center';
+    document.body.appendChild(el);
+    this._noticeEl = el;
   }
 
   setScene(scene, camera) {
@@ -109,8 +132,11 @@ export class Renderer {
       const ao = (this.gtao = new GTAOPass(this.scene, this.camera, w, h));
       ao.output = GTAOPass.OUTPUT.Default;
       ao.blendIntensity = 1.0;
-      ao.updateGtaoMaterial({ radius: 0.75, distanceExponent: 1.6, thickness: 1.0, scale: 1.15, samples: 12, distanceFallOff: 1.0 });
-      ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
+      // AO is one of the most expensive passes: scale its sampling with the tier instead of
+      // always paying the ultra cost on every quality level.
+      const heavy = q.paintAtlas >= 4096 || q.shadowSize >= 4096;
+      ao.updateGtaoMaterial({ radius: 0.75, distanceExponent: 1.6, thickness: 1.0, scale: 1.15, samples: heavy ? 12 : 8, distanceFallOff: 1.0 });
+      ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: heavy ? 16 : 10 });
       comp.addPass(ao);
     }
     this.bloom = new UnrealBloomPass(new THREE.Vector2(w, h), 0.28, 0.45, 2.4);
@@ -154,6 +180,10 @@ export class Renderer {
     const pr = Math.min(window.devicePixelRatio || 1, this.q.pixelRatio) * s;
     this.renderer.setPixelRatio(pr);
     this.composer.setPixelRatio(pr);
+    // setPixelRatio alone leaves the previous render targets alive until GC; release them now,
+    // otherwise every dynamic-resolution step leaks the whole HDR buffer.
+    this.composer.renderTarget1.dispose();
+    this.composer.renderTarget2.dispose();
     this.composer.setSize(this._w, this._h);
   }
 

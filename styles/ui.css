@@ -5,6 +5,11 @@
    ===================================================================================== */
 @font-face { font-family: 'Titan One'; src: url('../assets/fonts/TitanOne-latin.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: block; }
 @font-face { font-family: 'Rubik'; src: url('../assets/fonts/Rubik-latin.woff2') format('woff2'); font-weight: 400 900; font-style: normal; font-display: block; }
+/* Chinese: LXGW 975 Yuan SC (SIL OFL 1.1) subset to the glyphs this UI can print. Placed after the
+   Latin faces so Latin/digits keep Titan One / Rubik and only hanzi fall through to it. */
+@font-face { font-family: 'LXGW 975 Yuan SC'; src: url('../assets/fonts/LXGW975YuanSC-400.woff2') format('woff2'); font-weight: 400; font-style: normal; font-display: swap; }
+@font-face { font-family: 'LXGW 975 Yuan SC'; src: url('../assets/fonts/LXGW975YuanSC-700.woff2') format('woff2'); font-weight: 700; font-style: normal; font-display: swap; }
+@font-face { font-family: 'LXGW 975 Yuan SC'; src: url('../assets/fonts/LXGW975YuanSC-700.woff2') format('woff2'); font-weight: 800 900; font-style: normal; font-display: swap; }
 
 #ui-root { position: fixed; inset: 0; z-index: 10; pointer-events: none; overflow: hidden; user-select: none; -webkit-user-select: none; }
 
@@ -23,10 +28,11 @@
   --a: #ff8a14; --a-rgb: 255,138,20; --a-dark: #b8620f; --a-deep: #6a3a12; --a-light: #ffc48a; --a-ink: #15121c;
   --b: #2f5bff; --b-rgb: 47,91,255; --b-dark: #2442b4; --b-deep: #1d2766; --b-light: #98b0ff; --b-ink: #ffffff;
   position: absolute; inset: 0;
-  font-family: 'Rubik', system-ui, sans-serif; font-weight: 500;
+  font-family: 'Rubik', 'LXGW 975 Yuan SC', system-ui, sans-serif; font-weight: 500;
   color: #fff; line-height: 1.2;
   -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  word-break: normal; overflow-wrap: break-word;
 }
 .iw-ui *, .iw-hud *, .iw-hud-over * { box-sizing: border-box; }
 .iw-ui svg, .iw-hud svg, .iw-hud-over svg { display: block; overflow: visible; }
@@ -38,7 +44,7 @@
 
 /* chunky display type: thick outline painted under the fill */
 .iw-display {
-  font-family: 'Titan One', 'Rubik', sans-serif; font-weight: 400; letter-spacing: .015em;
+  font-family: 'Titan One', 'LXGW 975 Yuan SC', 'Rubik', sans-serif; font-weight: 400; letter-spacing: .015em;
   -webkit-text-stroke: .17em var(--k); paint-order: stroke fill;
   text-shadow: 0 .085em 0 var(--k), 0 .16em .12em rgba(0, 0, 0, .28);
 }
@@ -490,7 +496,7 @@
 @keyframes iw-row-flash { 20% { background: rgba(var(--a-rgb), .4); } }
 
 /* ------------------------------------------------------------------ SETTINGS */
-.iw-settings__panel { position: absolute; left: calc(var(--u) * 3.6); top: calc(var(--u) * 10.4); width: min(calc(var(--u) * 58), 64vw); padding: calc(var(--u) * 1.2); }
+.iw-settings__panel { position: absolute; left: calc(var(--u) * 3.6); top: calc(var(--u) * 10.4); bottom: calc(var(--u) * 5.2); width: min(calc(var(--u) * 58), 64vw); padding: calc(var(--u) * 1.2); overflow-y: auto; overflow-x: hidden; }
 .iw-rows { min-height: calc(var(--u) * 14); }
 .iw-row--link .iw-row__ctrl { gap: .5em; font: 800 var(--fs-s) / 1 'Rubik', sans-serif; letter-spacing: .08em; opacity: .85; }
 .iw-row--link .iw-row__ctrl i { display: block; width: 1.5em; height: 1.5em; }

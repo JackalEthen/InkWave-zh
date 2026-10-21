@@ -8,6 +8,7 @@ import {
   h, clamp, lerp, easeInOutCubic, easeOutBack, easeOutCubic, rng, splatShape, splatSVG, shade, fmtInt, safeCall,
 } from './ui-util.js';
 import { SQUID, GLYPHS, WEAPON_ICONS, SPLAT_ICON, SPECIAL_ICONS, mouseGlyph, padGlyph, keycap } from './ui-icons.js';
+import { t } from '../i18n/i18n.js';
 
 const K = '#15121c';
 const TAU = Math.PI * 2;
@@ -47,19 +48,28 @@ export const awardIcon = (id) => AWARD_ICONS[id] || AWARD_ICONS.star;
 
 // ================================================================================== awards
 export const AWARDS = {
-  mvp: { label: 'MVP', metal: 'gold', icon: 'star', desc: 'Best all-round score on the winning team' },
-  turf: { label: 'TURF KING', metal: 'gold', icon: 'crown', desc: 'Most turf inked in the match' },
-  splats: { label: 'TOP SPLATTER', metal: 'silver', icon: 'splat', desc: 'Most splats in the match' },
-  inker: { label: 'TOP INKER', metal: 'silver', icon: 'roller', desc: 'Most turf inked on their team' },
-  untouchable: { label: 'UNTOUCHABLE', metal: 'bronze', icon: 'shield', desc: 'Never got splatted' },
-  survivor: { label: 'SURVIVOR', metal: 'bronze', icon: 'buoy', desc: 'Splatted the fewest times' },
-  pure: { label: 'PURE PAINTER', metal: 'bronze', icon: 'brush', desc: 'Top-3 turf without splatting anyone' },
+  mvp: { metal: 'gold', icon: 'star' },
+  turf: { metal: 'gold', icon: 'crown' },
+  splats: { metal: 'silver', icon: 'splat' },
+  inker: { metal: 'silver', icon: 'roller' },
+  untouchable: { metal: 'bronze', icon: 'shield' },
+  survivor: { metal: 'bronze', icon: 'buoy' },
+  pure: { metal: 'bronze', icon: 'brush' },
 };
+for (const id of Object.keys(AWARDS)) {
+  Object.defineProperties(AWARDS[id], {
+    label: { get: () => t(`award.${id}.label`), enumerable: true, configurable: true },
+    desc: { get: () => t(`award.${id}.desc`), enumerable: true, configurable: true },
+  });
+}
 const AWARD_ORDER = ['mvp', 'turf', 'splats', 'inker', 'untouchable', 'survivor', 'pure'];
 export const MATCH_TAGS = {
-  close: { id: 'close', label: 'PHOTO FINISH', icon: 'stopwatch' },
-  landslide: { id: 'landslide', label: 'LANDSLIDE', icon: 'wave' },
+  close: { id: 'close', icon: 'stopwatch' },
+  landslide: { id: 'landslide', icon: 'wave' },
 };
+for (const id of Object.keys(MATCH_TAGS)) {
+  Object.defineProperty(MATCH_TAGS[id], 'label', { get: () => t(`mtag.${id}`), enumerable: true, configurable: true });
+}
 
 /**
  * Derives awards honestly from the final stats only (no timeline data exists, so no "comeback" style awards).
@@ -508,8 +518,8 @@ function previewLook(ctx, pad) {
   let v = +ctx.value || 1, ph = 0, shown = v;
   const set = (nv) => {
     v = +nv || 1;
-    if (pad) stat.innerHTML = `Full-stick 360° turn in <b>${(TAU / (PAD_YAW_RATE * v)).toFixed(2)} s</b>`;
-    else stat.innerHTML = `<b>${fmtInt(TAU / (MOUSE_RAD_PER_PX * v))} px</b> of mouse travel per 360° turn`;
+    if (pad) stat.innerHTML = t('sens.pad', { s: (TAU / (PAD_YAW_RATE * v)).toFixed(2) });
+    else stat.innerHTML = t('sens.mouse', { n: fmtInt(TAU / (MOUSE_RAD_PER_PX * v)) });
   };
   set(v);
   return {
@@ -534,7 +544,7 @@ function previewInvert(ctx) {
       <g transform="translate(160 90)"><circle r="11" fill="none" stroke="#fff" stroke-width="4"/><circle r="11" fill="none" stroke="${K}" stroke-width="1.5"/><circle r="2.6" fill="#fff" stroke="${K}" stroke-width="1.2"/></g>`, 'iw-pv-inv__screen')}
     <div class="iw-pv-cap"></div>` });
   const cap = el.querySelector('.iw-pv-cap');
-  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = v ? 'Push up <b>→ look DOWN</b>' : 'Push up <b>→ look UP</b>'; };
+  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = t(v ? 'pv.invert.up' : 'pv.invert.down'); };
   set(ctx.value);
   return { el, set };
 }
@@ -568,7 +578,7 @@ function previewFov(ctx) {
     wedgeEl.setAttribute('d', wedge(cur));
     let n = 0;
     tEls.forEach((g, i) => { const inside = Math.abs(T[i][0]) <= cur / 2 && T[i][1] <= R; g.classList.toggle('is-in', inside); if (inside) n++; });
-    if (n !== lastN) { lastN = n; cap.innerHTML = `<b>${n} of ${T.length}</b> squidkids in view`; }
+    if (n !== lastN) { lastN = n; cap.innerHTML = t('pv.kids', { n, total: T.length }); }
   };
   apply();
   return {
@@ -579,7 +589,7 @@ function previewFov(ctx) {
 }
 
 function previewQuality(ctx) {
-  const tiers = [['low', 'LOW'], ['medium', 'MED'], ['high', 'HIGH'], ['ultra', 'ULTRA']];
+  const tiers = ['low', 'medium', 'high', 'ultra'].map((q) => [q, t('pv.qual.' + q)]);
   const ladder = h('div', { class: 'iw-pv-ladder' }, tiers.map(([id, lab], i) => h('span', { class: 'iw-pv-ladder__col', 'data-q': id, style: { '--h': (0.3 + i * 0.233).toFixed(3) } }, h('i'), h('b', null, lab))));
   const chips = h('div', { class: 'iw-pv-chips' });
   const el = h('div', { class: 'iw-pv iw-pv--quality' }, ladder, chips);
@@ -588,15 +598,15 @@ function previewQuality(ctx) {
     const q = Q[v] || Q.high || {};
     ladder.querySelectorAll('.iw-pv-ladder__col').forEach((c) => c.classList.toggle('is-on', c.dataset.q === v));
     const rows = [
-      ['Pixel density', `up to ${(+q.pixelRatio || 1).toFixed(q.pixelRatio % 1 ? 2 : 1).replace(/0$/, '')}×`],
-      ['Shadow map', `${q.shadowSize || 0}px`],
-      ['Anti-aliasing', q.msaa ? `${q.msaa}× MSAA` : 'Off'],
-      ['Ink detail', `${Math.round((q.paintAtlas || 2048) / 1024)}K atlas`],
-      ['Ambient occlusion', q.ao ? 'On' : 'Off'],
-      ['Particles', `${Math.round((q.particles ?? 1) * 100)}%`],
+      ['pv.q.pixel', t('pv.q.pixelval', { n: (+q.pixelRatio || 1).toFixed(q.pixelRatio % 1 ? 2 : 1).replace(/0$/, '') })],
+      ['pv.q.shadow', (q.shadowSize || 0) + 'px'],
+      ['pv.q.aa', q.msaa ? q.msaa + '× MSAA' : t('pv.q.off')],
+      ['pv.q.ink', t('pv.q.atlas', { n: Math.round((q.paintAtlas || 2048) / 1024) })],
+      ['pv.q.ao', t(q.ao ? 'pv.q.on' : 'pv.q.off')],
+      ['pv.q.particles', Math.round((q.particles ?? 1) * 100) + '%'],
     ];
     chips.innerHTML = '';
-    rows.forEach(([k, val], i) => chips.appendChild(h('span', { class: 'iw-pv-chip' + (/Off|0%/.test(val) ? ' is-off' : ''), style: { '--i': i } }, h('small', null, k), h('b', null, val))));
+    rows.forEach(([k, val], i) => chips.appendChild(h('span', { class: 'iw-pv-chip' + (/关|Off|0%/.test(val) ? ' is-off' : ''), style: { '--i': i } }, h('small', null, t(k)), h('b', null, val))));
   };
   set(ctx.value);
   return { el, set };
@@ -611,7 +621,7 @@ function previewShadows(ctx) {
     <g transform="translate(160 74) scale(.5)" style="color:var(--a)">${SQUID.replace('class="iw-ico iw-squid"', 'x="0" y="0" width="64" height="64"')}</g>
     <path class="iw-fa" d="M60 150 q20 -9 40 0 q10 6 -6 12 q-20 7 -34 -2 q-8 -6 0 -10z"/>`) + '<div class="iw-pv-cap"></div>' });
   const cap = el.querySelector('.iw-pv-cap');
-  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = v ? 'Soft sun shadows <b>ON</b>' : 'Shadows <b>OFF</b> — faster on older machines'; };
+  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = t(v ? 'pv.shadow.on' : 'pv.shadow.off'); };
   set(ctx.value);
   return { el, set };
 }
@@ -627,7 +637,7 @@ function previewBloom(ctx) {
       <g transform="translate(136 66) scale(.75)" style="color:#fff">${SPECIAL_ICONS.slam.replace('class="iw-ico "', 'x="0" y="0" width="64" height="64"')}</g>
       <rect x="1" y="1" width="318" height="178" rx="14" fill="none" stroke="${K}" stroke-width="3"/></svg><div class="iw-pv-cap"></div>` });
   const cap = el.querySelector('.iw-pv-cap');
-  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = v ? 'Bright ink and specials <b>glow</b>' : 'Glow <b>OFF</b>'; };
+  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = t(v ? 'pv.bloom.on' : 'pv.bloom.off'); };
   set(ctx.value);
   return { el, set };
 }
@@ -642,7 +652,7 @@ function hudFrame(inner) {
 function previewFps(ctx) {
   const el = h('div', { class: 'iw-pv iw-pv--fps', html: hudFrame(`<g class="iw-pv-pop"><rect x="12" y="10" width="58" height="18" rx="6" fill="${K}"/><text x="41" y="23" text-anchor="middle" font-family="Rubik, sans-serif" font-weight="800" font-size="10.5" fill="#7dffa8">60 FPS</text></g>`) + '<div class="iw-pv-cap"></div>' });
   const cap = el.querySelector('.iw-pv-cap');
-  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = v ? 'Frame counter <b>shown</b> in matches' : 'Frame counter <b>hidden</b>'; };
+  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = t(v ? 'pv.fps.on' : 'pv.fps.off'); };
   set(ctx.value);
   return { el, set };
 }
@@ -651,7 +661,7 @@ function previewMinimap(ctx) {
       <path class="iw-fa" d="M238 118 q10 -6 20 0 q6 5 -4 10 q-10 4 -16 -2z M244 140 q9 -5 16 2 q4 6 -6 8 q-9 1 -10 -10z"/><path class="iw-fb" d="M280 112 q9 -4 16 2 q4 6 -6 9 q-9 2 -10 -11z M276 140 q10 -6 20 1 q5 6 -6 10 q-11 2 -14 -11z"/>
       <circle cx="252" cy="132" r="4" fill="#fff" stroke="${K}" stroke-width="2"/></g>`) + '<div class="iw-pv-cap"></div>' });
   const cap = el.querySelector('.iw-pv-cap');
-  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = v ? 'Turf minimap <b>in the corner</b>' : 'Minimap <b>hidden</b> — hold TAB for the big map'; };
+  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = t(v ? 'pv.map.on' : 'pv.map.off'); };
   set(ctx.value);
   return { el, set };
 }
@@ -662,7 +672,7 @@ function previewShake(ctx) {
   const boom = el.querySelector('.iw-pv-boom');
   const cap = el.querySelector('.iw-pv-cap');
   let v = +ctx.value, t = 0.6;
-  const set = (nv) => { v = clamp(+nv || 0); cap.innerHTML = v <= 0 ? 'Screen shake <b>OFF</b>' : `Shake strength <b>${Math.round(v * 100)}%</b>`; };
+  const set = (nv) => { v = clamp(+nv || 0); cap.innerHTML = v <= 0 ? t('pv.shake.off') : t('pv.shake', { n: Math.round(v * 100) }); };
   set(v);
   return {
     el, set,
@@ -694,7 +704,7 @@ function previewAudio(ctx, key) {
   const set = (nv, ss) => {
     v = clamp(+nv || 0); if (ss) s = ss;
     const e = eff();
-    cap.innerHTML = key === 'master' ? `Overall output <b>${Math.round(v * 100)}%</b>` : `Heard at <b>${Math.round(e * 100)}%</b> after master volume`;
+    cap.innerHTML = key === 'master' ? t('pv.master', { n: Math.round(v * 100) }) : t('pv.audio', { n: Math.round(e * 100) });
     el.classList.toggle('is-mute', e <= 0.001);
   };
   set(v);
@@ -725,7 +735,7 @@ function previewAimAssist(ctx) {
       <path d="M0 -21 V-15 M0 21 V15 M-21 0 H-15 M21 0 H15" stroke="#fff" stroke-width="3.2" stroke-linecap="round"/></g>`) + '<div class="iw-pv-cap"></div>' });
   const xEl = el.querySelector('.iw-pv-aim__x'), trail = el.querySelector('.iw-pv-aim__trail'), cap = el.querySelector('.iw-pv-cap');
   let v = clamp(+ctx.value || 0), t = 0;
-  const set = (nv) => { v = clamp(+nv || 0); cap.innerHTML = v <= 0.001 ? 'Aim assist <b>OFF</b>' : `Pull strength <b>${Math.round(v * 100)}%</b>`; };
+  const set = (nv) => { v = clamp(+nv || 0); cap.innerHTML = v <= 0.001 ? t('pv.aim.off') : t('pv.aim', { n: Math.round(v * 100) }); };
   set(v);
   return {
     el, set,
@@ -744,7 +754,7 @@ function previewAimAssist(ctx) {
 function previewAimMouse(ctx) {
   const el = h('div', { class: 'iw-pv iw-pv--aimm', html: `<div class="iw-pv-aimm__row"><span class="iw-pv-aimm__dev is-pad">${GLYPHS.gamepad}<b>ASSIST</b></span><span class="iw-pv-aimm__dev is-mouse">${mouseGlyph('M')}<b>ASSIST</b></span></div><div class="iw-pv-cap"></div>` });
   const cap = el.querySelector('.iw-pv-cap');
-  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = v ? 'Assist on <b>controller and mouse</b> (lighter on mouse)' : 'Assist on <b>controller only</b>'; };
+  const set = (v) => { el.classList.toggle('is-on', !!v); cap.innerHTML = t(v ? 'pv.aimmouse.on' : 'pv.aimmouse.off'); };
   set(ctx.value);
   return { el, set };
 }
@@ -753,7 +763,7 @@ function previewRumble(ctx) {
   const el = h('div', { class: 'iw-pv iw-pv--rumble', html: `<div class="iw-pv-rumble__pad">${GLYPHS.gamepad}<i class="l"></i><i class="r"></i></div><div class="iw-pv-cap"></div>` });
   const pad = el.querySelector('.iw-pv-rumble__pad'), cap = el.querySelector('.iw-pv-cap');
   let v = clamp(+ctx.value || 0), t = 0.4;
-  const set = (nv) => { v = clamp(+nv || 0); cap.innerHTML = v <= 0 ? 'Vibration <b>OFF</b>' : `Rumble strength <b>${Math.round(v * 100)}%</b>`; el.classList.toggle('is-off', v <= 0); };
+  const set = (nv) => { v = clamp(+nv || 0); cap.innerHTML = v <= 0 ? t('pv.rumble.off') : t('pv.rumble', { n: Math.round(v * 100) }); el.classList.toggle('is-off', v <= 0); };
   set(v);
   return {
     el, set,
@@ -776,8 +786,8 @@ function previewColorblind(ctx) {
   const cb = ctx.cbPalette || { a: '#ffd21a', b: '#2a52ff' };
   const pair = (a, b) => `<span class="iw-pv-pair"><i style="background:${a}"></i><i style="background:${b}"></i></span>`;
   const el = h('div', { class: 'iw-pv iw-pv--cb', html: `
-    <div class="iw-pv-pal iw-pv-pal--std"><small>STANDARD INKS · rotate each match</small><div class="iw-pv-pal__row">${pals.map((p) => pair(p.a, p.b)).join('')}</div><i class="iw-pv-pal__check">${GLYPHS.check}</i></div>
-    <div class="iw-pv-pal iw-pv-pal--cb"><small>COLORBLIND-SAFE · always</small><div class="iw-pv-pal__row">${pair(cb.a, cb.b)}<span class="iw-pv-pal__name">${(cb.names || ['Sun', 'Sea']).join(' vs ')}</span></div><i class="iw-pv-pal__check">${GLYPHS.check}</i></div>` });
+    <div class="iw-pv-pal iw-pv-pal--std"><small><div class="iw-pv-pal__row">${pals.map((p) => pair(p.a, p.b)).join('')}</div><i class="iw-pv-pal__check">${GLYPHS.check}</i></div>
+    <div class="iw-pv-pal iw-pv-pal--cb"><small><div class="iw-pv-pal__row">${pair(cb.a, cb.b)}<span class="iw-pv-pal__name">${(cb.names || ['Sun', 'Sea']).join(' vs ')}</span></div><i class="iw-pv-pal__check">${GLYPHS.check}</i></div>` });
   const set = (v) => el.classList.toggle('is-on', !!v);
   set(ctx.value);
   return { el, set };
@@ -808,7 +818,7 @@ function previewLength(ctx) {
     v = +v || 180;
     num.textContent = `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`;
     arc.setAttribute('stroke-dasharray', `${((v / max) * 100).toFixed(1)} 100`);
-    cap.innerHTML = v < 120 ? 'A quick <b>sprint</b> — every second counts' : 'The full <b>turf war</b> — room for comebacks';
+    cap.innerHTML = t(v < 120 ? 'pv.len.short' : 'pv.len.long');
     num.classList.remove('is-pop'); void num.offsetWidth; num.classList.add('is-pop'); // eslint-disable-line no-void
   };
   set(ctx.value);
@@ -830,7 +840,7 @@ function previewTab(ctx) {
 }
 function previewReset() {
   const el = h('div', { class: 'iw-pv iw-pv--tab', html: `<div class="iw-pv-tab__icon iw-pv-tab__icon--reset">${GLYPHS.reset}</div>
-    <div class="iw-pv-cap">Press twice to restore <b>every setting</b> on every tab</div>` });
+    <div class="iw-pv-cap">${t('settings.resetCap')}</div>` });
   return { el, set() {} };
 }
 

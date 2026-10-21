@@ -16,7 +16,8 @@ export class Match {
     this.duration = opts.duration || MATCH.defaultDuration;
     this.time = this.duration;
     this.state = 'init';
-    this.stateT = 0;
+    this.stateT = 0;      // wall-clock seconds since the last setState (frame-rate independent)
+    this._stateAt = 0;
     this.actors = [];
     this.controller = null;
     this.result = null;
@@ -83,7 +84,7 @@ export class Match {
   }
 
   setState(s) {
-    this.state = s; this.stateT = 0;
+    this.state = s; this.stateT = 0; this._stateAt = performance.now();
     emit('match:state', { state: s, match: this });
   }
 
@@ -100,7 +101,9 @@ export class Match {
 
   update(dt) {
     if (this.paused) return;
-    this.stateT += dt;
+    // wall-clock, not dt: dt is clamped (THREE.Timer) so at low fps a dt-accumulated
+    // timer would take minutes to reach the intro/finish thresholds and the round never ends
+    this.stateT = (performance.now() - this._stateAt) / 1000;
     switch (this.state) {
       case 'intro':
         if (this.stateT > 4.2) this.setState('playing');

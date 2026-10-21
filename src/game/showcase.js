@@ -806,7 +806,7 @@ export class Showcase {
     this.style = null; this.look = null; this.lookNext = null; this.emT0 = 0; this.danceBack = -1;
     this.shotFrom = null; this.shotT = 9; this._shotA = {}; this._shotB = {};
     // portraits
-    this._pq = []; this._pcache = new Map(); this._prt = null; this._prt8 = null; this._pbuf = null; this._pcam = null;
+    this._pq = []; this._pcache = new Map(); this._prt = null; this._prt8 = null; this._pcam = null;
     this._bindDrag();
     addEventListener('resize', () => { this.ui.next = 0; });
   }
@@ -1081,6 +1081,8 @@ export class Showcase {
     }
     this.stageL = this.stageR = null;
     this._rt?.dispose(); this._rt = null;
+    if (this._prts) { for (const p of this._prts.values()) { p.rt.dispose(); p.rt8.dispose(); } this._prts.clear(); }
+    this._prt = this._prt8 = null;
   }
 
   // ---------------------------------------------------------------------------------------------- update
@@ -1549,11 +1551,19 @@ export class Showcase {
   }
 
   _renderPortraitSetup(S) {
-    if (!this._prt || this._prt.width !== S) {
-      this._prt?.dispose(); this._prt8?.dispose();
-      this._prt = new THREE.WebGLRenderTarget(S, S, { type: THREE.HalfFloatType, samples: 4 });
-      this._prt8 = new THREE.WebGLRenderTarget(S, S, { depthBuffer: false });
+    // one cache per size: portrait requests interleave sizes (128/256/…), and
+    // dispose+recreate on every switch churns GPU memory and fragments the pool
+    this._prts = this._prts || new Map();
+    let p = this._prts.get(S);
+    if (!p) {
+      p = {
+        rt: new THREE.WebGLRenderTarget(S, S, { type: THREE.HalfFloatType, samples: 4 }),
+        rt8: new THREE.WebGLRenderTarget(S, S, { depthBuffer: false }),
+        buf: null,
+      };
+      this._prts.set(S, p);
     }
+    this._prt = p.rt; this._prt8 = p.rt8;
     if (!this._pres) {
       this._pres = new THREE.ShaderMaterial({
         uniforms: { tMap: { value: null }, uExposure: { value: 1 } },
@@ -1639,7 +1649,9 @@ export class Showcase {
     r.setRenderTarget(this._prt8);
     r.render(this._presScene, this.compCam);
     // async read-back (PBO + fence): no GPU pipeline stall; the next portrait may reuse the target right away
-    const buf = new Uint8Array(S * S * 4);
+    const p = this._prts.get(S);
+    if (!p.buf) p.buf = new Uint8Array(S * S * 4);
+    const buf = p.buf;
     const read = r.readRenderTargetPixelsAsync ? r.readRenderTargetPixelsAsync(this._prt8, 0, 0, S, S, buf) : Promise.resolve(r.readRenderTargetPixels(this._prt8, 0, 0, S, S, buf));
     this._pres.uniforms.tMap.value = null;
     r.setRenderTarget(prevRT);
